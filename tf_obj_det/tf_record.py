@@ -36,12 +36,16 @@ def __generate_test_record():
         for frame in get_data.get_test_frames(sequence):
             img = get_data.load_test_image(sequence, frame)
             img_raw = img.tostring()
+            filename = get_data.get_test_img_path(sequence, frame)
 
             # Form the tf record
             tf_example = tf.train.Example(features=tf.train.Features(feature={
                 'image/height': dataset_util.int64_feature(img.shape[0]),
                 'image/width': dataset_util.int64_feature(img.shape[1]),
-                'image/encoded': dataset_util.bytes_feature(img_raw)
+                'image/encoded': dataset_util.bytes_feature(img_raw),
+                'image/filename': dataset_util.bytes_feature(filename.encode('utf-8')),
+                'image/source_id': dataset_util.bytes_feature(filename.encode('utf-8')),
+                'image/format': dataset_util.bytes_feature('png'.encode('utf-8')),
             }))
 
             test_writer.write(tf_example.SerializeToString())
@@ -69,6 +73,7 @@ def __generate_train_record():
             frame_df = seq_df[seq_df.frame == frame]
             img = get_data.load_train_image(sequence, frame)
             img_raw = img.tostring()
+            filename = get_data.get_train_img_path(sequence, frame)
 
             x_min = []
             x_max = []
@@ -91,6 +96,9 @@ def __generate_train_record():
                 'image/height': dataset_util.int64_feature(img.shape[0]),
                 'image/width': dataset_util.int64_feature(img.shape[1]),
                 'image/encoded': dataset_util.bytes_feature(img_raw),
+                'image/filename': dataset_util.bytes_feature(filename.encode('utf-8')),
+                'image/source_id': dataset_util.bytes_feature(filename.encode('utf-8')),
+                'image/format': dataset_util.bytes_feature('png'.encode('utf-8')),
                 'image/object/bbox/xmin': dataset_util.float_list_feature(x_min),
                 'image/object/bbox/xmax': dataset_util.float_list_feature(x_max),
                 'image/object/bbox/ymin': dataset_util.float_list_feature(y_min),
